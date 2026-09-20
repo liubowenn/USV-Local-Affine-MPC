@@ -1,0 +1,41 @@
+# MATLAB temporary files
+*.asv
+*.autosave
+*.m~
+
+# User-installed dependency
+/external/LSSVM/
+
+# MATLAB Simulink
+slprj/
+*.slxc
+*.slx.autosave
+
+# Generated exports and temporary MAT files
+data/**/*.csv
+data/**/*.fig
+*.fig
+results/figures/
+results/**/*.fig
+*.mat
+
+# Reproducibility data, pretrained models and saved simulation results
+!/data/**/*.mat
+!/results/model_learned/**/*.mat
+!/results/mpc/**/*.mat
+
+# Binary / media / documentation
+*.pdf
+*.jpg
+*.png
+!/docs/assets/*.png
+*.pptx
+*.ppt
+*.doc
+*.docx
+*.zip
+
+# IDE / OS
+.vscode/
+Thumbs.db
+Desktop.ini
