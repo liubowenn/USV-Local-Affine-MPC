@@ -5,7 +5,7 @@ function repeatedFile = saveRepeatedMpcResults(runs, seeds, runWallTime)
 %   mpcRepeatedResult.runs{i}.mpcResult  - full result for run i
 %   mpcRepeatedResult.runs{i}.metrics    - metrics for run i
 %   mpcRepeatedResult.summary            - mean/std tables across runs
-%   mpcRepeatedResult.best_run           - best run selected by Ours score
+%   mpcRepeatedResult.best_run           - selected run metadata
 %   mpcRepeatedResult.best_result_file   - bestMpcResult.mat path
 
     nRuns = numel(runs);

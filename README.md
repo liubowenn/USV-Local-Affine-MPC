@@ -217,9 +217,3 @@ in the paper. The MATLAB closed-loop simulation uses the MSS model.
 - [Model artifact format](docs/MODEL_ARTIFACT_FORMAT.md)
 - [MPC result format](docs/MPC_RESULT_FORMAT.md)
 - [Code structure](docs/CODE_STRUCTURE.md)
-
-To refresh the README images from edited local MATLAB figures, run
-`exportReadmeResults(figureDirectory)`, where `figureDirectory` contains
-`mss_open_loop_all_maneuvers.fig`, `heading_tracking_both_environments.fig`, and
-`trajectory_tracking_both_environments.fig`. The function exports only MSS panels
-to the three PNG files above. Source `.fig` files are not uploaded.

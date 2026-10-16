@@ -1,7 +1,8 @@
 ﻿function [modelu, modelv, modelr] = trainGlobalLssvm(gam_u, gam_v, gam_r)
-    if ~exist('gam_u', 'var'), gam_u = 10; end
-    if ~exist('gam_v', 'var'), gam_v = 50; end
-    if ~exist('gam_r', 'var'), gam_r = 30; end
+    defaults = defaultExperimentConfig();
+    if ~exist('gam_u', 'var'), gam_u = defaults.gam_u; end
+    if ~exist('gam_v', 'var'), gam_v = defaults.gam_v; end
+    if ~exist('gam_r', 'var'), gam_r = defaults.gam_r; end
     load(dataFile('data.mat'), 'data');
     X_train = data(1:end-1, [1, 2, 3, 7, 8]);
     Yu = data(2:end, 1) - data(1:end-1, 1);

@@ -45,8 +45,8 @@ The learning functions mainly use:
 [u, v, r, tau_X, tau_N]
 ```
 
-and predict the next-step increments or next states depending on the model
-builder.
+and predict the next-step velocity increments `[delta_u, delta_v, delta_r]`.
+The state-space model adds these increments to the current velocity state.
 
 ## Validation Suite
 

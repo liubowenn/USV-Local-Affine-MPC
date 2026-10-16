@@ -122,9 +122,9 @@ function [predictions, labels, methodStats] = collectPredictions(data, Ts, repea
         'modelr', nr.modelr);
     [pred, ~] = predictLinearLssvm(data, ncModels, Ts);
     predictions{end+1, 1} = pred;
-    labels{end+1} = 'Global LSSVM';
+    labels{end+1} = 'Global LS-SVM';
     methodStats(end+1, 1) = buildSingleMethodStats( ...
-        'Global LSSVM', ...
+        'Global LS-SVM', ...
         pred, ...
         computePredictionMetrics(pred, truthFromData(data(1:end-1, :)), [], Ts));
     [clusterPreds, clusterLabels, clusterStats] = collectClusterPredictions(data, Ts, repeatInfo);
@@ -145,7 +145,7 @@ function [predictions, labels, methodStats] = collectPredictions(data, Ts, repea
     end
 end
 function [predictions, labels, methodStats] = collectClusterPredictions(data, Ts, repeatInfo)
-    labels = {'Ours', 'K-means-LSSVM'};
+    labels = {'This work', 'K-means LS-SVM'};
     predictions = cell(numel(labels), 1);
     methodStats = repmat(emptyMethodStats(), numel(labels), 1);
     if repeatInfo.enabled

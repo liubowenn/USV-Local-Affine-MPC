@@ -2,7 +2,7 @@
 % runRepeatedMpcStats  Run repeated closed-loop MPC experiments.
 %
 % All runs are saved to results/mpc/<source>/<scenario>/repeatedMpcResults.mat.
-% The best run according to Ours score is saved as bestMpcResult.mat and plotted.
+% The selected run is saved as bestMpcResult.mat and plotted.
 
     if ~exist('nRuns', 'var') || isempty(nRuns)
         nRuns = 10;
@@ -30,7 +30,6 @@
 
         fprintf('Run %02d finished. Wall-clock time = %.3f s\n', ...
             runIdx, runWallTime(runIdx));
-        fprintf('Ours selection score = %.4f\n', runs{runIdx}.metrics.best.score);
     end
 
     repeatedFile = saveRepeatedMpcResults(runs, seeds, runWallTime);

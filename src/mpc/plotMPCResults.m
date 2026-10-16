@@ -2,7 +2,7 @@ function fig = plotMPCResults(t, v, psi_ref, path_err, ulog, t_solve, wpt, mode,
 % plotMPCResults  Draw the closed-loop MPC overview figure.
 %
 % The function only consumes saved result data, so the same plotting logic can
-% be reused for MATLAB simulations and future external-environment logs.
+% be reused for the MSS and USV-simulator results.
     if ~exist('mp_mem', 'var') || isempty(mp_mem)
         mp_mem = [];
     end
@@ -13,6 +13,9 @@ function fig = plotMPCResults(t, v, psi_ref, path_err, ulog, t_solve, wpt, mode,
 
     names = mpcControllerNames();
     labels = cellfun(@mpcMethodLabel, names, 'UniformOutput', false);
+    if usesUsvSimulatorCoordinates(param)
+        labels{strcmp(names, 'mss')} = 'Native PID';
+    end
     colors = methodColors();
 
     lineStyles = {'-', '-', '-', '-', '-'};
@@ -205,7 +208,7 @@ function plotHeading(ax, t, v, psi_ref, names, labels, colors, ...
     setPaddedYLim(ax, allY, 8, [-180 180]);
 
     title(ax, titleText);
-    ylabel(ax, '\psi (deg)');
+    ylabel(ax, ['\psi (' char(176) ')']);
 
     if ~isempty(mp_mem)
         yyaxis(ax, 'right');
@@ -213,17 +216,17 @@ function plotHeading(ax, t, v, psi_ref, names, labels, colors, ...
         mp_mem = mp_mem(:)';
         n = min(numel(t), numel(mp_mem));
 
-        mpColor = [0.60 0.60 0.60];
+        mpColor = [140 120 83] / 255;
 
-        hPayload = plot(ax, t(1:n), mp_mem(1:n), '-.', ...
+        hPayload = plot(ax, t(1:n), mp_mem(1:n), '-', ...
             'Color', mpColor, ...
-            'LineWidth', 0.65, ...
+            'LineWidth', 1.2, ...
             'DisplayName', 'Payload mass');
 
         ylabel(ax, 'Payload mass (kg)');
         setPaddedYLim(ax, mp_mem(1:n), 1, [-inf inf]);
 
-        ax.YAxis(2).Color = mpColor;
+        ax.YAxis(2).Color = [0 0 0];
 
         yyaxis(ax, 'left');
     end
@@ -254,6 +257,20 @@ function plotHeading(ax, t, v, psi_ref, names, labels, colors, ...
         lgd.AutoUpdate = 'off';
     else
         legend(ax, 'off');
+    end
+    if isscalar(hPayload) && isgraphics(hPayload)
+        bg = axes(ax.Parent, 'Units', ax.Units, 'Position', ax.Position, ...
+            'PositionConstraint', 'innerposition', 'Color', 'none', ...
+            'Visible', 'off', 'HitTest', 'off', 'Tag', 'PayloadBackgroundAxes', ...
+            'XLim', ax.XLim, 'YLim', ax.YAxis(2).Limits);
+        bg.UserData = ax;
+        hPayload.Parent = bg;
+        ax.Color = 'none';
+        links = [linkprop([ax, bg], {'Position', 'XLim'}), ...
+            linkprop([ax.YAxis(2), bg.YAxis], {'Limits'})];
+        setappdata(ax, 'PayloadAxisLinks', links);
+        uistack(bg, 'bottom');
+        lgd.PlotChildren = legendHandles;
     end
 end
 
@@ -293,7 +310,7 @@ function plotHeadingError(ax, t, v, psi_ref, names, colors, ...
     setPaddedYLim(ax, allY, 1, [0 inf]);
 
     title(ax, titleText);
-    ylabel(ax, '|\psi_{error}| (deg)');
+    ylabel(ax, ['|\psi_{error}| (' char(176) ')']);
 end
 
 
@@ -438,9 +455,7 @@ end
 function [xData, yData] = xyPlotData(stateLog, param)
 % xyPlotData  Return horizontal Y and vertical X data for the XY panel.
 %
-% The legacy MSS simulation stores X/Y in rows 4/5 as used by the original
-% plotting code. The USV simulator logs use row 4 = Y and row 5 = X, so they
-% need to be converted before plotting against wpt.pos.y / wpt.pos.x.
+% MSS stores X/Y in rows 4/5; USV-simulator stores Y/X in rows 4/5.
     if usesUsvSimulatorCoordinates(param)
         xData = stateLog(4, :);
         yData = stateLog(5, :);
@@ -594,33 +609,33 @@ end
 
 
 function titles = makePanelTitles(showCrossTrack, showSpeedTrack)
-    titles.xy = '(a) XY Trajectory';
-    titles.tauX = '(b) Surge Force';
-    titles.tauN = '(c) Yaw Moment';
+    titles.xy = '(a) XY trajectory';
+    titles.tauX = '(b) Surge force';
+    titles.tauN = '(c) Yaw moment';
 
     if showCrossTrack
         if showSpeedTrack
-            titles.speed = '(d) Surge Speed';
-            titles.heading = '(e) Heading Tracking';
-            titles.headingErr = '(f) Heading Error';
-            titles.cross = '(g) Cross-Track Error';
-            titles.solve = '(h) QP Time';
+            titles.speed = '(d) Surge speed';
+            titles.heading = '(e) Heading tracking';
+            titles.headingErr = '(f) Heading error';
+            titles.cross = '(g) Cross-track error';
+            titles.solve = '(h) QP time';
         else
-            titles.heading = '(d) Heading Tracking';
-            titles.headingErr = '(e) Heading Error';
-            titles.cross = '(f) Cross-Track Error';
-            titles.solve = '(g) QP Time';
+            titles.heading = '(d) Heading tracking';
+            titles.headingErr = '(e) Heading error';
+            titles.cross = '(f) Cross-track error';
+            titles.solve = '(g) QP time';
         end
     else
         if showSpeedTrack
-            titles.speed = '(d) Surge Speed';
-            titles.heading = '(e) Heading Tracking';
-            titles.headingErr = '(f) Heading Error';
-            titles.solve = '(g) QP Time';
+            titles.speed = '(d) Surge speed';
+            titles.heading = '(e) Heading tracking';
+            titles.headingErr = '(f) Heading error';
+            titles.solve = '(g) QP time';
         else
-            titles.heading = '(d) Heading Tracking';
-            titles.headingErr = '(e) Heading Error';
-            titles.solve = '(f) QP Time';
+            titles.heading = '(d) Heading tracking';
+            titles.headingErr = '(e) Heading error';
+            titles.solve = '(f) QP time';
         end
     end
 end

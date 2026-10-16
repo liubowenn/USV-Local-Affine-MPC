@@ -1,18 +1,18 @@
 function label = mpcMethodLabel(name)
-% mpcMethodLabel  Convert a controller field name to a publication label.
+% mpcMethodLabel  Convert controller keys or saved labels to publication labels.
 
     switch lower(char(name))
-        case 'mss'
+        case {'mss', 'nomoto-tuned pid'}
             label = 'Nomoto-tuned PID';
-        case 'nc'
-            label = 'MPC-Global LSSVM';
-        case 'kmeans'
-            label = 'MPC-K-means-LSSVM';
-        case 'gp'
+        case {'nc', 'mpc-global lssvm', 'mpc-global ls-svm'}
+            label = 'MPC-Global LS-SVM';
+        case {'kmeans', 'mpc-k-means-lssvm', 'mpc-k-means ls-svm'}
+            label = 'MPC-K-means LS-SVM';
+        case {'gp', 'mpc-global gp'}
             label = 'MPC-Global GP';
-        case 'fcm'
-            label = 'Ours';
+        case {'fcm', 'ours', 'proposed', 'this work'}
+            label = 'This work';
         otherwise
-            label = upper(char(name));
+            label = char(name);
     end
 end

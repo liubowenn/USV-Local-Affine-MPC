@@ -1,9 +1,16 @@
 # Results
 
-Pretrained models under `model_learned/` and saved simulation results under
-`mpc/` are included in Git. They support validation and plotting without
-retraining. See the root README for commands.
+`model_learned/` contains pretrained models and repeated-model packages.
+`mpc/` contains the closed-loop experiments reported in the paper:
 
-Plot exports under `figures/` are ignored because they can be regenerated from
-the saved results. New simulation or training runs may modify versioned MAT
-files; include those changes when sharing updated results.
+| Environment | Heading tracking | S-shaped path following |
+| --- | --- | --- |
+| MSS | `mss/heading_multi_sine/` | `mss/curve_sine_s/` |
+| USV-simulator | `usv_simulator/heading_multisine_mass_current/` | `usv_simulator/curve_sine_s_1_mass/` |
+
+The saved results support plotting and metric evaluation without retraining.
+See the [README](../README.md) for commands and
+[MPC result format](../docs/MPC_RESULT_FORMAT.md) for the saved fields.
+
+The README previews are stored in `docs/assets/`. Local MATLAB figure files and
+results from additional scenarios are not versioned.

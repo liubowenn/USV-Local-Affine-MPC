@@ -4,6 +4,9 @@ function metrics = computeMpcResultMetrics(result)
 
     names = mpcControllerNames();
     labels = cellfun(@mpcMethodLabel, names, 'UniformOutput', false);
+    if strcmp(inferMpcPlotSource(result), 'usvsimu')
+        labels{strcmp(names, 'mss')} = 'Native PID';
+    end
     param = getStructField(result, 'param', struct());
     Ts = getStructField(result, 'Ts', getStructField(param, 'Ts', nan));
 

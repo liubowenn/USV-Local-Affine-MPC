@@ -19,7 +19,7 @@ function cfg = defaultExperimentConfig()
     % Data source
     %   'mss'           : data/mss -> results/model_learned/mss
     %   'usv_simulator' : data/usv_simulator -> results/model_learned/usvsimu
-    cfg.data.source = 'usv_simulator';
+    cfg.data.source = 'mss';
 
     % Training-data generation
     cfg.training.tau_x_nom = 100;
@@ -49,10 +49,6 @@ function cfg = defaultExperimentConfig()
     % Pipeline switches
     cfg.steps.generate_test_data = false;
     cfg.steps.generate_training_data = false;
-    if strcmp(cfg.data.source, 'usv_simulator')
-        cfg.steps.generate_test_data = false;
-        cfg.steps.generate_training_data = false;
-    end
     cfg.steps.train_nonclustered_lssvm = false;
     cfg.steps.train_weighted_fcm_lssvm = false;
     % Repeated WFCM/K-means training. Turn this on only when you want to
@@ -65,5 +61,4 @@ function cfg = defaultExperimentConfig()
     cfg.steps.train_kmeans_lssvm = false;
     cfg.steps.train_gp = false;
     cfg.steps.validate_models = true;
-    cfg.steps.run_mpc = false;
 end

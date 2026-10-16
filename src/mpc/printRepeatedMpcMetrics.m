@@ -3,7 +3,11 @@ function printRepeatedMpcMetrics(mpcRepeatedResult)
 
     fprintf('\n\n========== Repeated MPC Metrics: Mean +/- Std ==========\n');
     summary = mpcRepeatedResult.summary;
-    methods = summary.method;
+    methods = string(cellfun(@mpcMethodLabel, cellstr(summary.method), ...
+        'UniformOutput', false));
+    if strcmp(inferMpcPlotSource(mpcRepeatedResult), 'usvsimu')
+        methods(methods == "Nomoto-tuned PID") = "Native PID";
+    end
 
     printSummaryPair(methods, summary, ...
         'heading_mae_deg', 'heading_iae_deg_s', ...
@@ -32,8 +36,8 @@ function printRepeatedMpcMetrics(mpcRepeatedResult)
     end
 
     best = mpcRepeatedResult.best_run;
-    fprintf('\nBest run for plot: run %02d, seed=%d, Ours score=%.4f\n', ...
-        best.run_index, best.seed, best.score);
+    fprintf('\nSelected run for plot: run %02d, seed=%d\n', ...
+        best.run_index, best.seed);
 end
 
 function printSummaryPair(methods, summary, maeName, iaeName, titleText, maeUnit, iaeUnit)

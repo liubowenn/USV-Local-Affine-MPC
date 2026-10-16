@@ -22,7 +22,10 @@ results/**/*.fig
 # Reproducibility data, pretrained models and saved simulation results
 !/data/**/*.mat
 !/results/model_learned/**/*.mat
-!/results/mpc/**/*.mat
+!/results/mpc/mss/heading_multi_sine/*.mat
+!/results/mpc/mss/curve_sine_s/*.mat
+!/results/mpc/usv_simulator/heading_multisine_mass_current/*.mat
+!/results/mpc/usv_simulator/curve_sine_s_1_mass/*.mat
 
 # Binary / media / documentation
 *.pdf

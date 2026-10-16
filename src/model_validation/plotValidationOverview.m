@@ -1,13 +1,19 @@
 function plotValidationOverview(plotPacks)
 % plotValidationOverview  Draw the compact open-loop validation overview figures.
+    for i = 1:numel(plotPacks)
+        isProposed = ismember(lower(string(plotPacks(i).labels)), {'this work', 'ours'});
+        order = [find(~isProposed), find(isProposed)];
+        plotPacks(i).labels = plotPacks(i).labels(order);
+        plotPacks(i).predictions = plotPacks(i).predictions(order);
+    end
     plotCasePairFigure(plotPacks, {'zigzag25', 'zigzag35'}, ...
         'open_loop_validation_zigzag25_35', ...
-        {'(a) zigzag25', '(b) zigzag25 XY', ...
-         '(c) zigzag35', '(d) zigzag35 XY'});
+        {'(a) Zigzag25', '(b) Zigzag25 XY', ...
+         '(c) Zigzag35', '(d) Zigzag35 XY'});
     plotCasePairFigure(plotPacks, {'sine', 'circle'}, ...
         'open_loop_validation_sine_circle', ...
-        {'(a) sine', '(b) sine XY', ...
-         '(c) circle', '(d) circle XY'});
+        {'(a) Sine', '(b) Sine XY', ...
+         '(c) Circle', '(d) Circle XY'});
 end
 function plotCasePairFigure(plotPacks, caseNames, exportBaseName, panelTitles)
     figW = 7.2;
@@ -47,7 +53,6 @@ function plotCasePairFigure(plotPacks, caseNames, exportBaseName, panelTitles)
         drawMissingPanel(fig, posTime2, caseNames{2});
         drawMissingPanel(fig, posXY2, [caseNames{2}, ' XY']);
     end
-    exportValidationFigure(fig, exportBaseName);
 end
 function plotTimeResponsePanel(fig, panelPos, pack, titleText, showLegend, showYLabel, timeAxW, timeAxH)
     if ~exist('timeAxW', 'var') || isempty(timeAxW)
@@ -71,7 +76,8 @@ function plotTimeResponsePanel(fig, panelPos, pack, titleText, showLegend, showY
     axX = panelPos(1);
     axW = timeAxW;
     axH = timeAxH;
-    yLabels = {'u', 'v', 'r (deg/s)', '\psi (deg)'};
+    degree = char(176);
+    yLabels = {'u (m/s)', 'v (m/s)', ['r (' degree '/s)'], ['\psi (' degree ')']};
     for sp = 1:nRows
         axY = blockTop - titleSpace - sp * axH - (sp - 1) * gap;
         ax = axes(fig, 'Position', [axX axY axW axH]);
@@ -261,15 +267,13 @@ function compactAxis2D(ax, xData, yData)
     xlim(ax, [xMin - xPad, xMax + xPad]);
     ylim(ax, [yMin - yPad, yMax + yPad]);
 end
-function exportValidationFigure(~, ~)
-end
 function colors = validationColors(labels)
     colors = zeros(numel(labels), 3);
     for i = 1:numel(labels)
         name = lower(labels{i});
-        if contains(name, 'global lssvm')
+        if contains(name, 'global ls-svm') || contains(name, 'global lssvm')
             colors(i, :) = [0.00 0.45 0.74];
-        elseif contains(name, 'ours')
+        elseif contains(name, 'this work') || contains(name, 'ours')
             colors(i, :) = [0.85 0.33 0.10];
         elseif contains(name, 'k-means')
             colors(i, :) = [0.00 0.60 0.50];

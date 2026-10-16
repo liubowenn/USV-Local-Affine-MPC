@@ -8,6 +8,8 @@ function printMpcResultMetrics(resultOrMetrics)
     end
 
     T = metrics.table;
+    T.method = string(cellfun(@mpcMethodLabel, cellstr(T.method), ...
+        'UniformOutput', false));
 
     fprintf('\n=== Heading tracking error ===\n');
     printMetricPair(T, 'heading_mae_deg', 'heading_iae_deg_s', 'deg', 'deg*s');
