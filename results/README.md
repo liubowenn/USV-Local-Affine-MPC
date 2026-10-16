@@ -12,5 +12,5 @@ The saved results support plotting and metric evaluation without retraining.
 See the [README](../README.md) for commands and
 [MPC result format](../docs/MPC_RESULT_FORMAT.md) for the saved fields.
 
-The README previews are stored in `docs/assets/`. Local MATLAB figure files and
+Complete paper figures are stored in `docs/assets/`. Local MATLAB figure files and
 results from additional scenarios are not versioned.

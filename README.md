@@ -20,15 +20,10 @@ Open-loop prediction is evaluated under 25° and 35° zigzag maneuvers, a sinuso
 heading maneuver, and circular motion. The proposed method is compared with
 Global LS-SVM, Global GP, and K-means LS-SVM.
 
-![Open-loop predictions under four test maneuvers in the MSS environment](docs/assets/mss_open_loop_predictions.png)
-
-<details>
-<summary>Prediction errors: root-mean-square error (RMSE)</summary>
-
+Prediction errors are measured by root-mean-square error (RMSE).
 Proposed results are reported as the mean ±
 standard deviation over 10 independently trained models. Bold values indicate
-the lowest RMSE for each variable and maneuver. Yaw-rate RMSE is in rad/s;
-yaw-rate curves in the figure are in °/s.
+the lowest RMSE for each variable and maneuver. Yaw-rate RMSE is in rad/s.
 
 | Maneuver | Variable | Global LS-SVM | Global GP | K-means LS-SVM | Proposed |
 | --- | --- | ---: | ---: | ---: | ---: |
@@ -53,15 +48,9 @@ yaw-rate curves in the figure are in °/s.
 | sine | ψ (°) | 15.7289 | 15.7190 | 9.7290 | **4.2957 ± 3.9561** |
 | sine | xy (m) | 8.2640 | 8.2559 | 5.1394 | **2.4881 ± 1.9892** |
 
-</details>
-
 ### Multisine heading tracking
 
 Multisine heading tracking is evaluated under a time-varying payload disturbance.
-The panels show the trajectory, surge force, yaw moment, heading response,
-heading error, and QP solution time.
-
-<img src="docs/assets/heading_multi_sine.png" alt="Multisine heading tracking in the MSS environment" width="560">
 
 MAE and IAE denote mean absolute error and integral of absolute error. Values are
 mean ± standard deviation over 10 runs. QP solution time is averaged within each
@@ -81,8 +70,6 @@ A Frenet-frame line of sight (LOS) guidance law generates the reference heading.
 Surge velocity is included in the MPC output. The controllers are evaluated under
 simultaneous ocean-current and payload-mass disturbances.
 
-<img src="docs/assets/curve_sine_s.png" alt="S-shaped path following in the MSS environment" width="560">
-
 Values are mean ± standard deviation over 10 runs.
 
 | Controller | MAE<sub>ψ</sub> (°) | MAE<sub>u</sub> (m/s) | MAE<sub>eᵧ</sub> (m) | Mean QP time (ms) |
@@ -93,8 +80,7 @@ Values are mean ± standard deviation over 10 runs.
 | MPC-Global GP | 31.8160 ± 0.0029 | 0.1611 ± 0.0000 | 3.3911 ± 0.0005 | 2.4020 ± 0.0431 |
 | Proposed | **21.4656 ± 0.0015** | **0.0343 ± 0.0000** | **1.9321 ± 0.0002** | **1.9461 ± 0.0393** |
 
-<details>
-<summary>Integral of absolute error (IAE)</summary>
+#### Integral of absolute error (IAE)
 
 | Controller | IAE<sub>ψ</sub> (°·s) | IAE<sub>u</sub> (m) | IAE<sub>eᵧ</sub> (m·s) |
 | --- | ---: | ---: | ---: |
@@ -103,8 +89,6 @@ Values are mean ± standard deviation over 10 runs.
 | MPC-K-means LS-SVM | 3200.9952 ± 0.2613 | 20.0825 ± 0.0032 | 408.1807 ± 0.0441 |
 | MPC-Global GP | 2907.9866 ± 0.2641 | 14.7219 ± 0.0020 | 309.9450 ± 0.0486 |
 | Proposed | **1983.4223 ± 0.1414** | **3.1687 ± 0.0016** | **178.5290 ± 0.0164** |
-
-</details>
 
 Saved results: [heading tracking](results/mpc/mss/heading_multi_sine/repeatedMpcResults.mat)
 and [S-shaped path following](results/mpc/mss/curve_sine_s/repeatedMpcResults.mat).
@@ -205,7 +189,7 @@ replaces the corresponding saved models.
 | `data/` | Training, validation, and test datasets. |
 | `results/model_learned/` | Pretrained models and repeated-model packages. |
 | `results/mpc/` | Saved closed-loop simulation results. |
-| `docs/assets/` | The three MSS figures displayed above. |
+| `docs/assets/` | Complete paper figures in PNG format. |
 | `external/` | Runtime dependencies. |
 
 The data and result folders also contain the USV-simulator experiments described

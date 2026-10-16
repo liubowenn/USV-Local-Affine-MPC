@@ -61,7 +61,7 @@ data -> clustering -> model training -> state-space extraction
 Run the experiment commands from the repository root after `setupProject`.
 The data/model helpers resolve paths relative to that working directory.
 Datasets, pretrained models, and saved MPC results are versioned for
-reproducibility. The README previews are stored in `docs/assets/`; local
+reproducibility. Complete paper figures are stored in `docs/assets/`; local
 MATLAB figure files remain outside Git.
 
 ## Result Locations
