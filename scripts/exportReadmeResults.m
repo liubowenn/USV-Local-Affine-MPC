@@ -1,99 +1,136 @@
-function exportReadmeResults()
-% exportReadmeResults  Refresh README previews and tables from saved MSS runs.
-% Run from the repository root after setupProject. Does not rerun experiments.
-    root = setupProject();
-    previousDirectory = pwd;
-    restoreDirectory = onCleanup(@() cd(previousDirectory));
-    cd(root);
+function exportReadmeResults(figureDirectory)
+% exportReadmeResults  Export the edited MSS figures for the README.
+% Source FIG files remain local; only the three PNG previews are versioned.
+% This function does not rerun experiments or replace README text and tables.
+    narginchk(1, 1);
+    root = fileparts(fileparts(mfilename('fullpath')));
+    sourceNames = {'mss_open_loop_all_maneuvers', ...
+        'heading_tracking_both_environments', 'trajectory_tracking_both_environments'};
+    outputNames = {'mss_open_loop_predictions', 'heading_multi_sine', 'curve_sine_s'};
+    for k = 1:numel(sourceNames)
+        assert(isfile(fullfile(figureDirectory, [sourceNames{k}, '.fig'])), ...
+            'Source figure not found: %s', sourceNames{k});
+    end
     assetDirectory = fullfile(root, 'docs', 'assets');
     if ~isfolder(assetDirectory), mkdir(assetDirectory); end
-    cases = {'heading_multi_sine', 'curve_sine_s'};
-    packages = cell(1, numel(cases));
-    for i = 1:numel(cases)
-        source = fullfile('results', 'mpc', 'mss', cases{i}, 'repeatedMpcResults.mat');
-        loaded = load(source, 'mpcRepeatedResult');
-        packages{i} = loaded.mpcRepeatedResult;
-        fig = plotRepeatedMpcResultFile(source);
-        set(fig, 'Units', 'inches', 'Position', [1 1 12 10]);
-        axesHandles = findall(fig, 'Type', 'axes');
-        for axisHandle = axesHandles'
-            axisHandle.Units = 'normalized';
-            position = axisHandle.Position;
-            position(1) = position(1) * 0.96;
-            position(3) = position(3) * 0.96;
-            if position(1) > 0.3 && position(2) > 0.6
-                % Reserve space between current-colorbar labels and input axes.
-                position(1) = position(1) + 0.075;
-                position(3) = position(3) - 0.075;
+    for k = 1:numel(sourceNames)
+        fig = openfig(fullfile(figureDirectory, [sourceNames{k}, '.fig']), 'invisible');
+        cleanup = onCleanup(@() close(fig));
+        drawnow;
+        if k > 1
+            retainMssColumn(fig);
+        else
+            legends = findall(fig, 'Type', 'legend');
+            for j = 1:numel(legends)
+                legends(j).String = paperLabels(legends(j).String);
             end
-            axisHandle.Position = position;
         end
         drawnow;
-        exportgraphics(fig, fullfile(assetDirectory, [cases{i}, '.png']), ...
-            'Resolution', 180, 'BackgroundColor', 'white');
-        close(fig);
+        exportgraphics(fig, fullfile(assetDirectory, [outputNames{k}, '.png']), ...
+            'Resolution', 200, 'BackgroundColor', 'white');
+        clear cleanup;
     end
-    heading = packages{1};
-    curve = packages{2};
-    section = sprintf(['## Results\n\n', ...
-        'Representative MSS heading-tracking and S-path-following experiments. ', ...
-        'Each preview shows the saved best run selected by the existing ', ...
-        'experiment scoring rule; the table reports mean +/- sample standard ', ...
-        'deviation across all %d heading runs and %d path-following runs.\n\n', ...
-        '### Heading tracking\n\n', ...
-        '![MSS heading tracking: trajectory, inputs, heading error and QP time]', ...
-        '(docs/assets/heading_multi_sine.png)\n\n', ...
-        '### Path following\n\n', ...
-        '![MSS S-path following: trajectory, inputs, speed, heading and cross-track error]', ...
-        '(docs/assets/curve_sine_s.png)\n\n', ...
-        '### Controller comparison\n\n', ...
-        'Lower is better. QP time is the per-run mean solver time, aggregated ', ...
-        'across the saved runs; it is not total controller latency. ', ...
-        'A dash means the PID controller does not solve a QP.\n\n', ...
-        '| Controller | Heading MAE (deg) | Path cross-track MAE (m) | ', ...
-        'Heading QP time (ms) | Path QP time (ms) |\n', ...
-        '| --- | ---: | ---: | ---: | ---: |\n'], ...
-        numel(heading.runs), numel(curve.runs));
-    hs = heading.summary;
-    cs = curve.summary;
-    assert(isequal(string(hs.method), string(cs.method)), 'Controller order differs.');
-    for i = 1:numel(hs.method)
-        section = [section, sprintf('| %s | %s | %s | %s | %s |\n', ...
-            char(hs.method(i)), pair(hs, 'heading_mae_deg', i), ...
-            pair(cs, 'cross_track_mae_m', i), pair(hs, 'qp_mean_ms', i), ...
-            pair(cs, 'qp_mean_ms', i))]; %#ok<AGROW>
-    end
-    section = [section, sprintf(['\nSources: ', ...
-        '[heading runs](results/mpc/mss/heading_multi_sine/repeatedMpcResults.mat), ', ...
-        '[path-following runs](results/mpc/mss/curve_sine_s/repeatedMpcResults.mat). ', ...
-        'These previews use included MSS results; USV-Simulator result files ', ...
-        'are also available under `results/mpc/usv_simulator/`.\n\n', ...
-        'Refresh these PNG previews and the table from the saved files:\n\n', ...
-        '```matlab\nsetupProject; exportReadmeResults;\n```\n'])];
-    startMarker = '<!-- RESULTS:START -->';
-    endMarker = '<!-- RESULTS:END -->';
-    block = sprintf('%s\n%s%s', startMarker, section, endMarker);
-    readmeFile = fullfile(root, 'README.md');
-    content = fileread(readmeFile);
-    first = strfind(content, startMarker);
-    last = strfind(content, endMarker);
-    if isempty(first) && isempty(last)
-        anchor = strfind(content, '## Repository Layout');
-        assert(isscalar(anchor), 'README layout heading must occur once.');
-        content = [content(1:anchor-1), block, newline, newline, content(anchor:end)];
-    else
-        assert(isscalar(first) && isscalar(last) && last > first, 'Invalid results markers.');
-        content = [content(1:first-1), block, content(last+length(endMarker):end)];
-    end
-    fid = fopen(readmeFile, 'w', 'n', 'UTF-8');
-    assert(fid ~= -1, 'Cannot write README.');
-    closeFile = onCleanup(@() fclose(fid));
-    fprintf(fid, '%s', content);
 end
 
-function value = pair(summary, field, index)
-    average = summary.([field, '_mean'])(index);
-    spread = summary.([field, '_std'])(index);
-    if ~isfinite(average), value = '-'; return; end
-    value = sprintf('%.4f +/- %.4f', average, spread);
+function retainMssColumn(fig)
+    axesHandles = findall(fig, 'Type', 'axes');
+    keep = arrayfun(@(ax) ax.Position(1) < 0.5, axesHandles);
+    mssAxes = axesHandles(keep);
+    legends = findall(fig, 'Type', 'legend');
+    for j = 1:numel(legends)
+        if ~any(legends(j).Axes == mssAxes), delete(legends(j)); end
+    end
+    bars = findall(fig, 'Type', 'colorbar');
+    for j = 1:numel(bars)
+        if bars(j).Position(1) > 0.5, delete(bars(j)); end
+    end
+    delete(axesHandles(~keep));
+    delete(findall(fig, 'Type', 'textboxshape'));
+
+    % Preserve panel dimensions and reserve space above them for the legend.
+    fig.Units = 'centimeters';
+    sizeBefore = fig.Position;
+    widthRatio = 0.54;
+    heightRatio = sizeBefore(4) / (sizeBefore(4) + 2.2);
+    objects = [mssAxes; findall(fig, 'Type', 'colorbar'); findall(fig, 'Type', 'legend')];
+    positions = cell(numel(objects), 1);
+    for j = 1:numel(objects)
+        objects(j).Units = 'normalized';
+        positions{j} = objects(j).Position;
+    end
+    fig.Position(3:4) = [sizeBefore(3) * widthRatio, sizeBefore(4) + 2.2];
+    for j = 1:numel(objects)
+        position = positions{j};
+        position([1, 3]) = position([1, 3]) / widthRatio;
+        position([2, 4]) = position([2, 4]) * heightRatio;
+        objects(j).Position = position;
+    end
+    mainAxes = mssAxes(~strcmp({mssAxes.Tag}, 'PayloadBackgroundAxes'));
+    xy = mainAxes(arrayfun(@(ax) contains(string(ax.Title.String), 'XY trajectory'), mainAxes));
+    assert(isscalar(xy), 'Expected one MSS trajectory panel.');
+    lines = findall(xy, 'Type', 'line');
+    lines = lines(arrayfun(@(line) isprop(line, 'DisplayName'), lines));
+    lineLabels = arrayfun(@(line) string(line.DisplayName), lines);
+    labels = {'Reference', 'Nomoto-tuned PID', 'MPC-Global LS-SVM', ...
+        'MPC-K-means LS-SVM', 'MPC-Global GP', 'This work'};
+    handles = gobjects(0);
+    selectedLabels = {};
+    for j = 1:numel(labels)
+        index = find(strcmp(paperLabels(lineLabels), labels{j}));
+        if isempty(index), continue; end
+        assert(isscalar(index), 'Ambiguous controller line: %s', labels{j});
+        handles(end+1) = lines(index); %#ok<AGROW>
+        selectedLabels{end+1} = labels{j}; %#ok<AGROW>
+    end
+    assert(numel(handles) >= 5, 'MSS controller legend is incomplete.');
+    mainLegend = legend(xy, handles, selectedLabels, 'AutoUpdate', 'off', ...
+        'NumColumns', 2, 'FontName', 'Times New Roman', 'FontSize', 8, ...
+        'FontWeight', 'bold', 'Interpreter', 'none', 'Box', 'off');
+    mainLegend.Units = 'normalized';
+    mainLegend.Position = [0.09, 0.915, 0.83, 0.061];
+
+    heading = mainAxes(arrayfun(@(ax) numel(ax.YAxis) == 2, mainAxes));
+    assert(isscalar(heading), 'Expected one MSS payload-mass axis.');
+    heading.YAxis(2).Label.Units = 'normalized';
+    heading.YAxis(2).Label.Position = [1.12, 0.5, 0];
+    heading.YAxis(2).Color = [0, 0, 0];
+    heading.YAxis(2).Label.Color = [0, 0, 0];
+    existing = findall(fig, 'Type', 'legend');
+    if ~any(arrayfun(@(lg) isequal(lg.Axes, heading), existing))
+        desired = findall(heading, 'Type', 'line', 'DisplayName', 'Desired heading');
+        background = findall(fig, 'Tag', 'PayloadBackgroundAxes');
+        payload = findall(background, 'Type', 'line', 'DisplayName', 'Payload mass');
+        assert(isscalar(desired) && isscalar(payload));
+        detailLegend = legend(heading, desired, {'Desired heading'}, ...
+            'Location', 'southwest', 'FontName', 'Times New Roman', ...
+            'FontSize', 7, 'FontWeight', 'bold', 'AutoUpdate', 'off');
+        detailLegend.PlotChildren = [desired; payload];
+        detailLegend.String = {'Desired heading', 'Payload mass'};
+    end
+    % Legend creation can restore an axis's old layout; retain the MSS geometry.
+    drawnow;
+    for j = 1:numel(objects)
+        position = positions{j};
+        position([1, 3]) = position([1, 3]) / widthRatio;
+        position([2, 4]) = position([2, 4]) * heightRatio;
+        if isgraphics(objects(j), 'axes')
+            objects(j).PositionConstraint = 'innerposition';
+        end
+        objects(j).Position = position;
+    end
+    bars = findall(fig, 'Type', 'colorbar');
+    for j = 1:numel(bars)
+        bars(j).Label.String = 'Current speed (m/s)';
+        bars(j).Label.FontAngle = 'normal';
+    end
+end
+
+function labels = paperLabels(labels)
+    labels = cellstr(string(labels));
+    labels = strrep(labels, 'Global LSSVM', 'Global LS-SVM');
+    labels = strrep(labels, 'K-means-LSSVM', 'K-means LS-SVM');
+    labels = strrep(labels, 'MPC-global LSSVM', 'MPC-Global LS-SVM');
+    labels = strrep(labels, 'MPC-k-means-LSSVM', 'MPC-K-means LS-SVM');
+    labels = strrep(labels, 'MPC-global GP', 'MPC-Global GP');
+    labels = strrep(labels, 'Ours', 'This work');
 end

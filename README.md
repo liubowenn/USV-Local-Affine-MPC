@@ -1,336 +1,225 @@
 # Data-Driven Model Predictive Control of Differential-Thrust Unmanned Surface Vehicles via Local Affine Model Blending
 
-**USV-Local-Affine-MPC** provides source code and simulation data for data-driven
-MPC of differential-thrust USVs using local affine model blending.
+MATLAB source code and simulation data for data-driven model predictive control
+(MPC) of differential-thrust unmanned surface vehicles (USVs).
 
-This repository contains the MATLAB implementation for a soft-clustering-based
-local linearization data-driven MPC method for differential-thrust unmanned
-surface vehicles (USVs). The code supports data preparation, WFCM/K-means
-clustering, LS-SVM and GP model learning, open-loop model validation, and
-closed-loop MPC simulations under heading-tracking and path-following tasks.
+The method combines feature weighted fuzzy c-means (WFCM) with linear-kernel
+least-squares support vector machines (LS-SVMs) to identify explicit local affine
+models in overlapping maneuvering regions. The local models are smoothly blended
+online to form an incremental predictor, retaining a quadratic programming (QP)
+formulation for MPC.
 
-## Highlights
+## Results in the MSS environment
 
-- Weighted FCM (WFCM) with GA-optimized feature weights.
-- Local linear LS-SVM models and membership-weighted model fusion.
-- Global LS-SVM, K-means-LSSVM, Global GP, and Nomoto-tuned PID baselines.
-- Heading-tracking and curve/path-following MPC scenarios.
-- Spatial current and time-varying payload disturbance support.
-- Single-run and repeated-run result saving, metric printing, and plotting from
-  `.mat` result files.
+The following results show open-loop prediction, multisine heading tracking, and
+S-shaped path following in the Marine Systems Simulator (MSS).
 
-<!-- RESULTS:START -->
-## Results
+### Open-loop prediction performance
 
-Representative MSS heading-tracking and S-path-following experiments. Each preview shows the saved best run selected by the existing experiment scoring rule; the table reports mean +/- sample standard deviation across all 10 heading runs and 10 path-following runs.
+Open-loop prediction is evaluated under 25° and 35° zigzag maneuvers, a sinusoidal
+heading maneuver, and circular motion. The proposed method is compared with
+Global LS-SVM, Global GP, and K-means LS-SVM.
 
-### Heading tracking
+![Open-loop predictions under four test maneuvers in the MSS environment](docs/assets/mss_open_loop_predictions.png)
 
-![MSS heading tracking: trajectory, inputs, heading error and QP time](docs/assets/heading_multi_sine.png)
+<details>
+<summary>Prediction errors: root-mean-square error (RMSE)</summary>
 
-### Path following
+Proposed results are reported as the mean ±
+standard deviation over 10 independently trained models. Bold values indicate
+the lowest RMSE for each variable and maneuver. Yaw-rate RMSE is in rad/s;
+yaw-rate curves in the figure are in °/s.
 
-![MSS S-path following: trajectory, inputs, speed, heading and cross-track error](docs/assets/curve_sine_s.png)
+| Maneuver | Variable | Global LS-SVM | Global GP | K-means LS-SVM | Proposed |
+| --- | --- | ---: | ---: | ---: | ---: |
+| zigzag25 | u (m/s) | 0.0513 | 0.0509 | **0.0328** | 0.0373 ± 0.0057 |
+| zigzag25 | v (m/s) | 0.0573 | 0.0573 | 0.0471 | **0.0258 ± 0.0104** |
+| zigzag25 | r (rad/s) | 0.0467 | 0.0467 | 0.0390 | **0.0237 ± 0.0042** |
+| zigzag25 | ψ (°) | 8.7637 | 8.7546 | 7.4691 | **4.2160 ± 2.9112** |
+| zigzag25 | xy (m) | 1.3098 | 1.3078 | 1.0702 | **0.7113 ± 0.2978** |
+| zigzag35 | u (m/s) | 0.0458 | 0.0454 | 0.0322 | **0.0274 ± 0.0026** |
+| zigzag35 | v (m/s) | 0.0485 | 0.0485 | 0.0442 | **0.0176 ± 0.0080** |
+| zigzag35 | r (rad/s) | 0.0343 | 0.0343 | 0.0333 | **0.0219 ± 0.0020** |
+| zigzag35 | ψ (°) | 8.2701 | 8.2617 | 6.6011 | **2.8715 ± 1.4545** |
+| zigzag35 | xy (m) | 1.0863 | 1.0845 | 1.0397 | **0.3903 ± 0.1948** |
+| circle | u (m/s) | 0.0356 | 0.0353 | **0.0342** | 0.0513 ± 0.0078 |
+| circle | v (m/s) | 0.1010 | 0.1011 | 0.0602 | **0.0371 ± 0.0128** |
+| circle | r (rad/s) | 0.0372 | 0.0372 | 0.0240 | **0.0104 ± 0.0065** |
+| circle | ψ (°) | 61.6642 | 61.6540 | 37.0905 | **14.5111 ± 12.3210** |
+| circle | xy (m) | 13.9502 | 13.9459 | 7.8912 | **2.9872 ± 2.6480** |
+| sine | u (m/s) | 0.0508 | 0.0507 | **0.0248** | 0.0487 ± 0.0044 |
+| sine | v (m/s) | 0.0763 | 0.0763 | 0.0614 | **0.0328 ± 0.0057** |
+| sine | r (rad/s) | 0.0365 | 0.0365 | 0.0319 | **0.0143 ± 0.0032** |
+| sine | ψ (°) | 15.7289 | 15.7190 | 9.7290 | **4.2957 ± 3.9561** |
+| sine | xy (m) | 8.2640 | 8.2559 | 5.1394 | **2.4881 ± 1.9892** |
 
-### Controller comparison
+</details>
 
-Lower is better. QP time is the per-run mean solver time, aggregated across the saved runs; it is not total controller latency. A dash means the PID controller does not solve a QP.
+### Multisine heading tracking
 
-| Controller | Heading MAE (deg) | Path cross-track MAE (m) | Heading QP time (ms) | Path QP time (ms) |
+Multisine heading tracking is evaluated under a time-varying payload disturbance.
+The panels show the trajectory, surge force, yaw moment, heading response,
+heading error, and QP solution time.
+
+<img src="docs/assets/heading_multi_sine.png" alt="Multisine heading tracking in the MSS environment" width="560">
+
+MAE and IAE denote mean absolute error and integral of absolute error. Values are
+mean ± standard deviation over 10 runs. QP solution time is averaged within each
+run; the PID controller does not solve a QP.
+
+| Controller | MAE<sub>ψ</sub> (°) | IAE<sub>ψ</sub> (°·s) | Mean QP time (ms) |
+| --- | ---: | ---: | ---: |
+| Nomoto-tuned PID | 10.2971 ± 0.0001 | 308.9120 ± 0.0041 | — |
+| MPC-Global LS-SVM | 5.9756 ± 0.0005 | 179.2675 ± 0.0152 | 1.4388 ± 0.1493 |
+| MPC-K-means LS-SVM | 6.2809 ± 0.0007 | 188.4258 ± 0.0202 | 1.4676 ± 0.1676 |
+| MPC-Global GP | 5.9748 ± 0.0005 | 179.2444 ± 0.0152 | **1.4216 ± 0.1481** |
+| Proposed | **5.7164 ± 0.0004** | **171.4922 ± 0.0119** | 1.4384 ± 0.1683 |
+
+### S-shaped path following
+
+A Frenet-frame line of sight (LOS) guidance law generates the reference heading.
+Surge velocity is included in the MPC output. The controllers are evaluated under
+simultaneous ocean-current and payload-mass disturbances.
+
+<img src="docs/assets/curve_sine_s.png" alt="S-shaped path following in the MSS environment" width="560">
+
+Values are mean ± standard deviation over 10 runs.
+
+| Controller | MAE<sub>ψ</sub> (°) | MAE<sub>u</sub> (m/s) | MAE<sub>eᵧ</sub> (m) | Mean QP time (ms) |
 | --- | ---: | ---: | ---: | ---: |
-| Nomoto-tuned PID | 10.2971 +/- 0.0001 | 3.4088 +/- 0.0004 | - | - |
-| MPC-Global LSSVM | 5.9756 +/- 0.0005 | 3.3912 +/- 0.0005 | 1.4388 +/- 0.1493 | 2.4348 +/- 0.0639 |
-| MPC-K-means-LSSVM | 6.2809 +/- 0.0007 | 4.5003 +/- 0.0005 | 1.4676 +/- 0.1676 | 2.8991 +/- 0.0458 |
-| MPC-Global GP | 5.9748 +/- 0.0005 | 3.3911 +/- 0.0005 | 1.4216 +/- 0.1481 | 2.4020 +/- 0.0431 |
-| Ours | 5.7164 +/- 0.0004 | 1.9321 +/- 0.0002 | 1.4384 +/- 0.1683 | 1.9461 +/- 0.0393 |
+| Nomoto-tuned PID | 37.4776 ± 0.0020 | 0.1251 ± 0.0000 | 3.4088 ± 0.0004 | — |
+| MPC-Global LS-SVM | 31.8174 ± 0.0029 | 0.1611 ± 0.0000 | 3.3912 ± 0.0005 | 2.4348 ± 0.0639 |
+| MPC-K-means LS-SVM | 35.2921 ± 0.0029 | 0.2214 ± 0.0000 | 4.5003 ± 0.0005 | 2.8991 ± 0.0458 |
+| MPC-Global GP | 31.8160 ± 0.0029 | 0.1611 ± 0.0000 | 3.3911 ± 0.0005 | 2.4020 ± 0.0431 |
+| Proposed | **21.4656 ± 0.0015** | **0.0343 ± 0.0000** | **1.9321 ± 0.0002** | **1.9461 ± 0.0393** |
 
-Sources: [heading runs](results/mpc/mss/heading_multi_sine/repeatedMpcResults.mat), [path-following runs](results/mpc/mss/curve_sine_s/repeatedMpcResults.mat). These previews use included MSS results; USV-Simulator result files are also available under `results/mpc/usv_simulator/`.
+<details>
+<summary>Integral of absolute error (IAE)</summary>
 
-Refresh these PNG previews and the table from the saved files:
+| Controller | IAE<sub>ψ</sub> (°·s) | IAE<sub>u</sub> (m) | IAE<sub>eᵧ</sub> (m·s) |
+| --- | ---: | ---: | ---: |
+| Nomoto-tuned PID | 3642.8205 ± 0.1981 | 12.1644 ± 0.0016 | 331.3396 ± 0.0381 |
+| MPC-Global LS-SVM | 2908.1110 ± 0.2653 | 14.7250 ± 0.0020 | 309.9566 ± 0.0488 |
+| MPC-K-means LS-SVM | 3200.9952 ± 0.2613 | 20.0825 ± 0.0032 | 408.1807 ± 0.0441 |
+| MPC-Global GP | 2907.9866 ± 0.2641 | 14.7219 ± 0.0020 | 309.9450 ± 0.0486 |
+| Proposed | **1983.4223 ± 0.1414** | **3.1687 ± 0.0016** | **178.5290 ± 0.0164** |
 
-```matlab
-setupProject; exportReadmeResults;
-```
-<!-- RESULTS:END -->
+</details>
 
-## Repository Layout
-
-| Path | Purpose |
-| --- | --- |
-| `setupProject.m` | Adds project folders and external dependencies to the MATLAB path. |
-| `scripts/` | Top-level experiment scripts and default model-learning configuration. |
-| `src/common/` | Shared path helpers, metrics, prediction utilities, and small tools. |
-| `src/data_generation/` | MSS-based training and validation data generation. |
-| `src/clustering/` | FCM/WFCM and K-means clustering. |
-| `src/model_training/` | Global/local LS-SVM and GP model training. |
-| `src/state_space/` | Extraction of affine state-space models from learned predictors. |
-| `src/model_validation/` | Open-loop prediction validation and repeated-model statistics. |
-| `src/guidance/` | Heading references, curve references, and Frenet-LOS guidance. |
-| `src/mpc/` | Closed-loop simulation, MPC solvers, controllers, result saving, and plotting. |
-| `data/` | Included MATLAB datasets for `mss` and `usv_simulator`. |
-| `results/` | Included pretrained models and saved MPC results; exported figures are ignored by Git. |
-| `external/` | Minimal third-party dependencies used by this project. |
-| `docs/` | File-format notes and code-reading guides. |
+Saved results: [heading tracking](results/mpc/mss/heading_multi_sine/repeatedMpcResults.mat)
+and [S-shaped path following](results/mpc/mss/curve_sine_s/repeatedMpcResults.mat).
 
 ## Requirements
 
-The project is developed and tested in MATLAB on Windows.
+The MATLAB implementation is developed on Windows. Required toolboxes:
 
-Required MATLAB toolboxes:
+- Statistics and Machine Learning Toolbox
+- Fuzzy Logic Toolbox
+- Global Optimization Toolbox
+- Optimization Toolbox
 
-- Statistics and Machine Learning Toolbox, for GP models and K-means.
-- Fuzzy Logic Toolbox, for FCM clustering.
-- Global Optimization Toolbox, for GA feature-weight optimization.
-- Optimization Toolbox, for `optimoptions` during configuration and the
-  `quadprog` fallback solver (also required by the current OSQP configuration).
+Download [LS-SVMlab](https://www.esat.kuleuven.be/sista/lssvmlab/toolbox.html) and
+place its MATLAB files in `external/LSSVM/`, including `initlssvm.m` and
+`trainlssvm.m`. This toolbox is installed separately after cloning the repository.
 
-Bundled or project-local dependencies:
+The MSS utility subset and OSQP MATLAB interface are included. The bundled OSQP
+binary is for Windows x64. On other platforms, install a compatible OSQP MATLAB
+interface or set `param.qp_solver = 'quadprog'` in
+`src/mpc/config_simulation.m`.
 
-- LS-SVMlab, installed separately in `external/LSSVM/` (not included in Git).
-- MSS utility subset in `external/MSS/`.
-- OSQP MATLAB interface in `external/osqp-matlab/` (bundled binary: Windows x64).
+## Reproduce the MSS results
 
-Before training, download LS-SVMlab from the
-[official toolbox page](https://www.esat.kuleuven.be/sista/lssvmlab/toolbox.html)
-and place its MATLAB files directly in `external/LSSVM/`, so that
-`external/LSSVM/initlssvm.m` and `external/LSSVM/trainlssvm.m` exist.
-Then run `setupProject` from the repository root. This local dependency folder
-is ignored by Git and must be supplied separately after cloning the repository.
-
-On other platforms, install a compatible OSQP MATLAB interface on the MATLAB
-path or select `quadprog`. The bundled vendor tests and code-generation files
-are not added to the runtime path.
-
-If OSQP is unavailable, set the QP solver to `quadprog` in
-`src/mpc/config_simulation.m`:
-
-```matlab
-param.qp_solver = 'quadprog';
-```
-
-## Quick Start
-
-Open MATLAB in the repository root and initialize the path:
+Datasets, pretrained models, and saved simulation results are included. Open
+MATLAB in the repository root and run:
 
 ```matlab
 setupProject;
 ```
 
-### 1. Get Results Without Retraining
+### Open-loop prediction
 
-Datasets, pretrained models and saved MPC results are included in Git (about
-77 MiB of MAT files). Run commands from the repository root in MATLAB.
-
-To display a saved heading experiment and print its repeated-run statistics:
+Validate the saved MSS models and report repeated-model RMSE statistics:
 
 ```matlab
-setupProject; plotRepeatedMpcResultFile('results/mpc/mss/heading_multi_sine/repeatedMpcResults.mat');
+setenv('MPC_DATA_SOURCE', 'mss');
+validateModels(true, true);
 ```
 
-For the saved path-following experiment:
+### Saved heading-tracking and path-following results
+
+Display the saved runs and print their statistics:
 
 ```matlab
-setupProject; plotRepeatedMpcResultFile('results/mpc/mss/curve_sine_s/repeatedMpcResults.mat');
+plotRepeatedMpcResultFile('results/mpc/mss/heading_multi_sine/repeatedMpcResults.mat');
+plotRepeatedMpcResultFile('results/mpc/mss/curve_sine_s/repeatedMpcResults.mat');
 ```
 
-These commands read saved results; they do not rerun simulations or training.
-To recompute open-loop predictions using the included data and pretrained
-models instead, run:
+### New closed-loop simulations
+
+Select the task and controller settings in `src/mpc/config_simulation.m`, then run:
 
 ```matlab
-setupProject; runFullPipeline;
+runMpcSimulation;
 ```
 
-The default configuration validates the USV-Simulator models, reports repeated
-clustered-model statistics, and opens prediction plots. Training and data
-generation are disabled by default. Model validation requires the MATLAB
-toolboxes listed above; saved-result plotting does not train or load GP models.
+For 10 repeated runs of the selected task:
 
-### Optional: Regenerate MSS Data and Models
+```matlab
+runRepeatedMpcStats(10);
+```
 
-To regenerate MSS data and train all four MPC predictors, install LS-SVMlab as
-described above and run:
+Results are saved under `results/mpc/mss/<scenario>/`.
+
+### Train the MSS models
 
 ```matlab
 cfg = defaultExperimentConfig();
 cfg.data.source = 'mss';
-cfg.steps.generate_test_data = true;
-cfg.steps.generate_training_data = true;
 cfg.steps.train_nonclustered_lssvm = true;
 cfg.steps.train_weighted_fcm_lssvm = true;
-cfg.steps.train_weighted_fcm_lssvm_repeat = false;
 cfg.steps.train_kmeans_lssvm = true;
 cfg.steps.train_gp = true;
 cfg.steps.validate_repeated_models = false;
 runModelExperiment(cfg);
 ```
 
-This regenerates MSS datasets and overwrites the corresponding trained models.
-GA training can take substantial time. USV-Simulator datasets are already
-included; collecting new ones requires the external simulator and the format
-in `docs/DATASET_FORMAT.md`. ROS collection and control nodes are not included
-in this MATLAB repository.
+To regenerate the MSS training and test datasets as well, set
+`cfg.steps.generate_training_data = true` and
+`cfg.steps.generate_test_data = true` before running the experiment. Training
+replaces the corresponding saved models.
 
-### 2. Run Open-Loop Model Validation
+## Repository layout
 
-Edit the data source and pipeline switches in:
-
-```text
-scripts/defaultExperimentConfig.m
-```
-
-Common source choices:
-
-```matlab
-cfg.data.source = 'mss';
-% or
-cfg.data.source = 'usv_simulator';
-```
-
-Then run:
-
-```matlab
-runFullPipeline;
-```
-
-`validateModels(true)` validates the currently selected official models.
-
-```matlab
-validateModels(true);
-```
-
-`validateModels(true, true)` reads the saved repeated-model package and reports
-mean +/- std for repeated clustered models.
-
-```matlab
-validateModels(true, true);
-```
-
-### 3. Run One MPC Experiment
-
-The MATLAB closed-loop simulator uses MSS dynamics and MSS models regardless
-of the model-learning data-source selection. The required MSS models are included.
-
-Edit closed-loop settings in:
-
-```text
-src/mpc/config_simulation.m
-```
-
-Then run:
-
-```matlab
-runMpcSimulation;
-```
-
-The run saves:
-
-```text
-results/mpc/<source>/<scenario>/latestMpcResult.mat
-```
-
-The plotting and metric-printing functions can also read the saved file later:
-
-```matlab
-plotMPCResultFile('results/mpc/mss/heading_multi_sine/latestMpcResult.mat');
-```
-
-### 4. Run Repeated MPC Experiments
-
-```matlab
-runRepeatedMpcStats(10);
-```
-
-This saves:
-
-```text
-results/mpc/<source>/<scenario>/repeatedMpcResults.mat
-results/mpc/<source>/<scenario>/bestMpcResult.mat
-```
-
-To plot the best run and print repeated-run statistics:
-
-```matlab
-plotRepeatedMpcResultFile('results/mpc/mss/heading_multi_sine/repeatedMpcResults.mat');
-```
-
-## Main Configuration Files
-
-| File | Main parameters |
+| Path | Contents |
 | --- | --- |
-| `scripts/defaultExperimentConfig.m` | Data source, number of clusters, LS-SVM hyperparameters, WFCM GA settings, validation switches. |
-| `src/mpc/config_simulation.m` | Sampling time, horizon, MPC weights, actuator constraints, OSQP settings, heading/curve scenario, current disturbance, payload disturbance. |
-| `src/mpc/curveScenarioPreset.m` | Path-following scenario presets. |
+| `setupProject.m` | MATLAB path setup. |
+| `scripts/` | Experiment entry points and model-learning configuration. |
+| `src/data_generation/` | MSS training, validation, and test data generation. |
+| `src/clustering/` | WFCM and K-means clustering. |
+| `src/model_training/` | Global and local LS-SVM models and GP models. |
+| `src/state_space/` | Affine state-space models for MPC. |
+| `src/model_validation/` | Open-loop prediction and RMSE evaluation. |
+| `src/guidance/` | Heading references, path references, and Frenet-LOS guidance. |
+| `src/mpc/` | Closed-loop simulation, controllers, QP solvers, and result plotting. |
+| `src/common/` | Shared data, model, and metric utilities. |
+| `data/` | Training, validation, and test datasets. |
+| `results/model_learned/` | Pretrained models and repeated-model packages. |
+| `results/mpc/` | Saved closed-loop simulation results. |
+| `docs/assets/` | The three MSS figures displayed above. |
+| `external/` | Runtime dependencies. |
 
-Important default parameters include:
+The data and result folders also contain the USV-simulator experiments described
+in the paper. The MATLAB closed-loop simulation uses the MSS model.
 
-```matlab
-% WFCM GA
-population_size = 10;
-max_generations = 30;
-elite_count = 3;
-weight_bounds = [0.25, 5];
+## Data and result formats
 
-% MPC / OSQP
-Ts = 0.1;
-Np = 30;
-eps_abs = 1e-4;
-eps_rel = 1e-4;
-max_iter = 4000;
-polish = true;
-```
+- [Dataset format](docs/DATASET_FORMAT.md)
+- [Model artifact format](docs/MODEL_ARTIFACT_FORMAT.md)
+- [MPC result format](docs/MPC_RESULT_FORMAT.md)
+- [Code structure](docs/CODE_STRUCTURE.md)
 
-## Generated Model Layout
-
-Learned artifacts are grouped by source:
-
-```text
-results/model_learned/mss/
-results/model_learned/usvsimu/
-```
-
-Each source contains:
-
-```text
-trained_models/       LS-SVM and GP learned models
-state_space_models/   Affine state-space models used by MPC
-cluster_info/         Cluster centers, normalization ranges, labels, and WFCM weights
-repeated_models/      Repeated clustered-model packages and summaries
-```
-
-## Data and Result Formats
-
-See:
-
-| Document | Description |
-| --- | --- |
-| `docs/DATASET_FORMAT.md` | Dataset matrix columns and validation-suite format. |
-| `docs/MODEL_ARTIFACT_FORMAT.md` | Learned model, cluster metadata, and state-space model files. |
-| `docs/MPC_RESULT_FORMAT.md` | Single-run and repeated-run MPC result structures. |
-| `docs/CODE_STRUCTURE.md` | File-by-file reading guide. |
-
-For external simulators or ROS environments, save a `.mat` file with the
-`mpcResult` structure described in `docs/MPC_RESULT_FORMAT.md`; then reuse:
-
-```matlab
-plotMPCResultFile('your_result_file.mat');
-```
-
-## Included Data and Results
-
-The following MAT files are versioned with the code:
-
-- `data/**/*.mat`: training, validation and test datasets for both sources.
-- `results/model_learned/**/*.mat`: pretrained predictors, cluster metadata,
-  state-space models and repeated-model packages.
-- `results/mpc/**/*.mat`: saved single-run and repeated-run MPC results.
-
-Exported figures, temporary MAT files elsewhere, and the user-installed
-`external/LSSVM/` dependency remain ignored. Rerunning training or simulation
-can modify the versioned artifacts; commit those changes when updating the
-shared experiment results.
-
-## Citation
-
-If this code helps your research, please cite the accompanying paper once it is
-available.
+To refresh the README images from edited local MATLAB figures, run
+`exportReadmeResults(figureDirectory)`, where `figureDirectory` contains
+`mss_open_loop_all_maneuvers.fig`, `heading_tracking_both_environments.fig`, and
+`trajectory_tracking_both_environments.fig`. The function exports only MSS panels
+to the three PNG files above. Source `.fig` files are not uploaded.

@@ -25,8 +25,8 @@ data -> clustering -> model training -> state-space extraction
 | --- | --- |
 | `src/data_generation/` | Generate training and validation data. |
 | `src/clustering/` | FCM and K-means clustering. |
-| `src/model_training/` | LSSVM and GP model training. |
-| `src/state_space/` | Convert learned models to linear state-space models. |
+| `src/model_training/` | LS-SVM and GP model training. |
+| `src/state_space/` | Extract affine state-space models from learned predictors. |
 | `src/model_validation/` | Open-loop prediction, repeated-model statistics, and validation plots. |
 | `src/guidance/` | Heading references, curve references, and Frenet-LOS guidance. |
 | `src/mpc/` | Closed-loop MPC simulation, controllers, plotting, and result saving. |
@@ -43,9 +43,6 @@ data -> clustering -> model training -> state-space extraction
 - `plotCurrentField.m` draws spatial-current heatmaps and fixed-size direction arrows.
 - The MATLAB simulation uses MSS models. USV-Simulator result files can be
   imported for plotting; ROS control nodes are outside this repository.
-- Each simulation interval uses the preceding command for the whole `Ts`.
-  The newly solved command is used in the next interval. QP wall time is logged,
-  but does not determine an intra-interval actuator switch.
 
 ## Validation Design Notes
 
@@ -63,12 +60,9 @@ data -> clustering -> model training -> state-space extraction
 
 Run the experiment commands from the repository root after `setupProject`.
 The data/model helpers resolve paths relative to that working directory.
-Only runtime dependency folders are added to the MATLAB path. Bundled vendor
-tests are retained as upstream material but are not experiment entry points.
-Paper-editing utilities, literature reviews, private audit reports, and tool
-downloads do not belong in the source tree. MAT datasets, pretrained models,
-and saved MPC results under `data/`, `results/model_learned/`, and `results/mpc/`
-are versioned for reproducibility. Exported figures remain ignored by Git.
+Datasets, pretrained models, and saved MPC results are versioned for
+reproducibility. The README previews are stored in `docs/assets/`; local
+MATLAB figure files remain outside Git.
 
 ## Result Locations
 

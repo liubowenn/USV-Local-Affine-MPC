@@ -2,8 +2,6 @@
 
 This document describes generated model files under `results/model_learned/`.
 
-本文档说明 `results/model_learned/` 下生成的模型文件格式。
-
 ## Source Layout
 
 ```text
@@ -33,16 +31,16 @@ Files:
 
 | File pattern | Variable | Meaning |
 | --- | --- | --- |
-| `modeluNoCluster.mat` | `modelu` | Global LSSVM model for surge speed. |
-| `modelvNoCluster.mat` | `modelv` | Global LSSVM model for sway speed. |
-| `modelrNoCluster.mat` | `modelr` | Global LSSVM model for yaw rate. |
-| `modeluCluster<i>_FCM.mat` | `modelu` | FCM-cluster local LSSVM model. |
-| `modelvCluster<i>_FCM.mat` | `modelv` | FCM-cluster local LSSVM model. |
-| `modelrCluster<i>_FCM.mat` | `modelr` | FCM-cluster local LSSVM model. |
-| `modeluCluster<i>_KMEANS.mat` | `modelu` | K-means local LSSVM model. |
-| `modelvCluster<i>_KMEANS.mat` | `modelv` | K-means local LSSVM model. |
-| `modelrCluster<i>_KMEANS.mat` | `modelr` | K-means local LSSVM model. |
-| `modelGP.mat` | `modelGP` | Global GP model package. |
+| `modeluNoCluster.mat` | `modelu` | Global LS-SVM model for surge speed. |
+| `modelvNoCluster.mat` | `modelv` | Global LS-SVM model for sway speed. |
+| `modelrNoCluster.mat` | `modelr` | Global LS-SVM model for yaw rate. |
+| `modeluCluster<i>_FCM.mat` | `modelu` | FCM-cluster local LS-SVM model. |
+| `modelvCluster<i>_FCM.mat` | `modelv` | FCM-cluster local LS-SVM model. |
+| `modelrCluster<i>_FCM.mat` | `modelr` | FCM-cluster local LS-SVM model. |
+| `modeluCluster<i>_KMEANS.mat` | `modelu` | K-means local LS-SVM model. |
+| `modelvCluster<i>_KMEANS.mat` | `modelv` | K-means local LS-SVM model. |
+| `modelrCluster<i>_KMEANS.mat` | `modelr` | K-means local LS-SVM model. |
+| `modelGP.mat` | `gpModels` | Global GP model package. |
 
 ## State-Space Models
 
@@ -105,5 +103,5 @@ results/model_learned/<source>/repeated_models/
 
 | File | Variable | Meaning |
 | --- | --- | --- |
-| `repeatedClusterComparison.mat` | `comparison` or package struct | Repeated-run metric summary. |
-| `repeatedClusterModels.mat` | repeated model package | Aggregated best models from repeated training. |
+| `repeatedClusterComparison.mat` | `results` | Repeated-run metric summary. |
+| `repeatedClusterModels.mat` | `repeatedClusterModels` | Local models from repeated WFCM and K-means training. |

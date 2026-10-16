@@ -3,8 +3,6 @@
 This document describes the `.mat` files used by data generation, model
 training, and open-loop validation.
 
-本文档说明数据生成、模型训练和开环验证所需的 `.mat` 文件格式。
-
 ## Locations
 
 ```text
@@ -22,10 +20,10 @@ cfg.data.source = 'mss';           % or 'usv_simulator'
 
 | File | Variable | Purpose |
 | --- | --- | --- |
-| `data.mat` | `data` | Training data used for LSSVM/GP learning and clustering. |
+| `data.mat` | `data` | Training data used for LS-SVM/GP learning and clustering. |
 | `data_val.mat` | `data_val` | Validation data used by GA feature-weight tuning. |
 | `testSuite.mat` | `testSuite` | Open-loop validation cases. |
-| `data_25.mat` | `data_25` | Legacy single validation case, kept for compatibility. |
+| `data_25.mat` | `data_25` | Single 25° zigzag test dataset. |
 
 ## Data Matrix Columns
 
@@ -58,5 +56,3 @@ builder.
 | --- | --- |
 | `name` | Case name, such as `zigzag25`, `zigzag35`, `circle`, `sine`. |
 | `data` | Data matrix with the same column convention as above. |
-
-`validateModels` currently excludes the `zigzag15` case.

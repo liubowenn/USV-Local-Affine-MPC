@@ -2,8 +2,6 @@
 
 This document describes saved closed-loop MPC result files.
 
-本文档说明闭环 MPC 结果 `.mat` 文件格式。
-
 ## Locations
 
 Single-run result:
@@ -111,7 +109,7 @@ Fields:
 | `runs{i}.mpcResult` | Full single-run result. |
 | `runs{i}.metrics` | Metrics for run `i`. |
 | `summary` | Mean/std metric tables across runs. |
-| `best_run` | Best run metadata selected by Ours score. |
+| `best_run` | Selected run metadata for the proposed controller. |
 | `best_result_file` | Path to `bestMpcResult.mat`. |
 
 ## External Environment Logs

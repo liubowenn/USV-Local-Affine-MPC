@@ -15,4 +15,4 @@ setupProject;
 | `runMpcExperiment.m` | Runs the closed-loop MPC script when `cfg.steps.run_mpc` is enabled. |
 | `runRepeatedClusterComparison.m` | Performs repeated GA-based weighted FCM and K-means comparisons. |
 | `runRepeatedMpcStats.m` | Performs repeated closed-loop MPC simulations and prints statistics. |
-| `exportReadmeResults.m` | Exports README PNG previews and refreshes the comparison table from saved MSS results. |
+| `exportReadmeResults.m` | Exports three MSS README previews from edited local MATLAB figures. |
